@@ -44,6 +44,8 @@ def gen_all_properties():
         ys.append(obj)
     return ys
 
+def to_colors(clevr_objects):
+    return [x.color.name for x in clevr_objects]
 
 def random_choices(ls, k):
     if k == 0:
@@ -112,7 +114,7 @@ class MemberProblem(ILPProblem):
             x = random.choice(self.symbols)
             # ls = random.sample(self.symbols, k=n)
             ls = sample_wo_color_duplication(n=n, clevr_objects=self.symbols)
-            if x in ls:
+            if x in ls and len([x]+ls) == len(list(set([x]+ls))):
                 self.pos_examples.append(([x], ls))
                 # term1 = Const(x)
                 # term2 = list_to_term(ls, self.funcs[0])
@@ -128,7 +130,8 @@ class MemberProblem(ILPProblem):
             while flag:
                 x = random.choice(self.symbols)
                 ls = random.sample(self.symbols, n)
-                if not x in ls:
+                # if not x in ls:
+                if not x in ls and len([x]+ls) == len(list(set([x]+ls))):
                     self.neg_examples.append(([x], ls))
                     # atom = Atom(self.preds[0], [
                     #            Const(x), list_to_term(ls, self.funcs[0])])
@@ -178,6 +181,11 @@ class AppendProblem(ILPProblem):
             ls2 = sample_wo_color_duplication(n=n2, clevr_objects=self.symbols)
 
             # flip 50% of examples (1,2) or (2,1)A
+            cs = to_colors([a1] + ls2)
+            print('------------ cs ')
+            print(cs)
+            if len(cs) != len(list(set(cs))):
+                continue
             if random.random() < 0.5:
                 self.pos_examples.append(([a1], ls2, [a1] + ls2))
             else:
@@ -196,6 +204,11 @@ class AppendProblem(ILPProblem):
             n3 = random.randint(self.min_len, int(self.max_len))
             # ls3 = random.sample(self.symbols, k=n2)
             ls3 = sample_wo_color_duplication(n=n2, clevr_objects=self.symbols)
+
+            cs = to_colors([a1] + ls2)
+            if len(cs) != len(list(set(cs))):
+                print(cs)
+                continue
 
             if random.random() < 0.5:
                 if [a1] + ls2 != ls3:
